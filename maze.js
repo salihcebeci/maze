@@ -38,12 +38,9 @@ function setup() {
   frameRate(5);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
-  background(0, 97, 18);
   noStroke();
   player_pos = findPlayerPos();
-  drawMaze();
-  drawPlayer();
-
+  drawGameArea();
   player_pos = [10, 10];
 }
 
@@ -65,6 +62,12 @@ function drawMaze(){
   }
 }
 
+function drawGameArea(){
+  background(0, 97, 18);
+  drawMaze();
+  drawPlayer();
+}
+
 function drawPlayer(){
     fill(0, 100, 100);
 		rect(player_pos[1]*square_size + margin_size + 10, player_pos[0]*square_size + margin_size + 10, 20, 20);
@@ -72,9 +75,6 @@ function drawPlayer(){
 
 // Processing method - Her frame de
 function draw() {
-
-    console.log(player_direction);
-
     if (Math.random() < 0.2 ){   //her 5 adımda bir yönünü değiştir
       stepCounter = 0;
       if (Math.random() < 0.5)
@@ -82,13 +82,9 @@ function draw() {
       else
         turnRight();
     }
-
-
-    playerMove();
-    drawMaze();
-    drawPlayer();
-
-    stepCounter ++;
+    else
+      playerMove();
+    drawGameArea();
 }
 
 //sağa hareket ettiğimiz fonksiyon player pos'un ilk indexi
