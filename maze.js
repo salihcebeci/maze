@@ -37,7 +37,7 @@ squares = [
 
 // Processing method - Baslangicta bir kez
 function setup() {
-  frameRate(10);
+  frameRate(20);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
@@ -47,11 +47,23 @@ function setup() {
 
 // Processing method - Her frame de
 function draw() {
+  
+  if (Math.random() < 0.1){
+    if (Math.random() < 0.5)
+      turnLeft();
+    else
+      turnRight();
+  }
+
+
+  
   updateNextPos();
   if (checkPlayerMove())
 		playerMove();
-  else
+  else if (Math.random() < 0.5)
     turnLeft();
+  else
+    turnRight();
 
   drawGameArea();
 }
