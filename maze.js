@@ -54,7 +54,7 @@ var usedMatrix = []
 
 // Processing method - Baslangicta bir kez
 function setup() {
-  frameRate(10);
+  frameRate(20);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
@@ -72,14 +72,21 @@ function setup() {
   var candidatePathIndex = candidatePaths.length - 1;
   pos = candidatePaths[candidatePathIndex];
   dir = candidateDirections[candidatePathIndex];
+  candidatePaths.splice(candidatePathIndex, 1);
+  candidateDirections.splice(candidateDirections, 1);
   player_pos = pos.slice();
   player_direction = dir;
+  noLoop();
   drawGameArea();
 }
 
 // Processing method - Her frame de
 function draw() {
-  console.log(candidatePaths.length);
+  console.log("-----------------------------------")
+  console.log(candidatePaths);
+  console.log(candidateDirections);
+  console.log(usedPaths);
+  console.log(usedDirections);
   updateNextPos();
   if (checkPlayerMove()){
     playerMove();
@@ -89,20 +96,41 @@ function draw() {
       last_path = [];
       last_directions = [];
       updateCandidatePaths();
-      var candidatePathIndex = candidatePaths.length - 1;
-      pos = candidatePaths[candidatePathIndex];
-      dir = candidateDirections[candidatePathIndex];
-      usedPaths.push(pos);
-      usedDirections.push(dir);
-      candidatePaths.splice(candidatePathIndex, 1);
-      candidateDirections.splice(candidateDirections, 1);
-      player_pos = pos.slice();
-      player_direction = dir;
+      if (candidatePaths.length > 0)
+      {
+        var candidatePathIndex = candidatePaths.length - 1;
+        pos = candidatePaths[candidatePathIndex];
+        dir = candidateDirections[candidatePathIndex];
+        candidatePaths.splice(candidatePathIndex, 1);
+        candidateDirections.splice(candidateDirections, 1);
+        player_pos = pos.slice();
+        player_direction = dir;
+      }
   }
   drawGameArea();
 }
 
+
+function keyReleased(){
+  if (keyCode  === RIGHT_ARROW){
+    loop()
+  }
+  if (keyCode  === LEFT_ARROW)
+  {
+    noLoop();
+  }
+}
+
 function updateCandidatePaths(){
+  updateNextPos();
+  if (checkPlayerMove())
+  {
+    if (!candidateExists(player_pos, player_direction)){
+      candidatePaths.push(player_pos);
+      candidateDirections.push(player_direction);
+    }
+  }
+
 
   turnRight();
   updateNextPos();
@@ -155,6 +183,9 @@ function updateNextPos() {
 
 // hareket edip edemeyecegini kontrol ediyor
 function checkPlayerMove() {
+  if (candidateExists(next_pos, player_direction))
+    return false;
+
   if (next_pos[0] < 0 || next_pos[0] >= num_squares || next_pos[1] < 0 || next_pos[1] >= num_squares)
     return false;
   if (squares[next_pos[0]][next_pos[1]] == 1)
@@ -254,6 +285,8 @@ function playerMove() {
   last_path.push(player_pos);
   last_directions.push(player_direction);
   usedMatrix[player_pos[0]][player_pos[1]]++;
+  usedPaths.push(player_pos.slice());
+  usedDirections.push(player_direction);
 }
 
 // Yönünü sağa doğru değiştir
