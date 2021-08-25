@@ -194,6 +194,7 @@ function drawGameArea() {
   background(0, 97, 18);
   drawMaze();
   drawLastPath();
+  drawLastPath();
   drawPlayer();
 }
 
@@ -234,6 +235,8 @@ function drawPlayer() {
 //sağa hareket ettiğimiz fonksiyon player pos'un ilk indexi
 function playerMove() {
   player_pos = next_pos.slice();
+  last_path.push(player_pos);
+  last_directions.push(player_direction);
 }
 
 // Yönünü sağa doğru değiştir
