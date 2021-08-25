@@ -70,9 +70,6 @@ function copyPos(pos) {
 
 // Processing method - Her frame de
 function draw() {
-
-  console.log(pastPosList);
-
   var fromReverseMode = false;
 
   if (candidatePosList.length == 0)
@@ -83,12 +80,10 @@ function draw() {
     pos = pastPosList.pop();
     pos.direction = (pos.direction + 2) % 4;
 
-    // TODO direction i bir onceki pos ile birlikte dusun.
-    // Mutlak degerin farkina bakmak degilde , direction ile birlikte dusun.
-    // Direction in tipine gore -1 ya da +1 dyierek bak
-
-    if (abs(pos.row - candidatePosList[candidatePosList.length - 1].row) <= 1 && 
-        abs(pos.column - candidatePosList[candidatePosList.length - 1].column) <= 1){;
+    candidatePos = copyPos(candidatePosList[candidatePosList.length - 1]);
+    candidatePos.direction = (candidatePos.direction + 2) % 4;
+    candidatePosNext = findNextPos(candidatePos);
+    if (candidatePosNext.row == pos.row && candidatePosNext.column == pos.column){
           reverseMode = false;
     }  
     else
