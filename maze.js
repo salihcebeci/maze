@@ -8,25 +8,13 @@ player_size = 20;
 margin_size = 20;
 num_squares = 19;
 
-
 var stepCounter = 0;
 
-var player_pos;
-var next_pos;
-
-// baslangic yonu
-var player_direction = DIRECTION_UP;
-
-var last_path = [];
-var last_directions = [];
-
+var playerPos;
+var lastPosList = [];
 var canUseUsedPos = false;
-
-var candidatePaths = [];
-var candidateDirections = [];
-
-var usedPaths = [];
-var usedDirections = [];
+var candidatePosList = [];
+var usedPosList = [];
 
 squares = [
   [0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //0. sıra
@@ -47,170 +35,140 @@ squares = [
   [0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0], //15.sıra
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 0, 0, 0, 0], //16.sıra
   [0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], //17.sıra
-  [0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 20]] //18.sıra
-
+  [0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 20]
+] //18.sıra
 
 var usedMatrix = []
 
 // Processing method - Baslangicta bir kez
 function setup() {
-  frameRate(20);
+  frameRate(60);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
-  for (let i = 0; i < num_squares ; i++){
+  for (let i = 0; i < num_squares; i++) {
     usedMatrix.push([]);
-    for (let j = 0; j < num_squares ; j++){
+    for (let j = 0; j < num_squares; j++) {
       usedMatrix[i].push(0);
     }
   }
-  console.log(usedMatrix);
-  player_pos = findPlayerPos();
-  last_path.push(player_pos);
-  last_directions.push(player_direction);
-  updateCandidatePaths();
-  var candidatePathIndex = candidatePaths.length - 1;
-  pos = candidatePaths[candidatePathIndex];
-  dir = candidateDirections[candidatePathIndex];
-  candidatePaths.splice(candidatePathIndex, 1);
-  candidateDirections.splice(candidateDirections, 1);
-  player_pos = pos.slice();
-  player_direction = dir;
-  noLoop();
+  findFirstPos();
+  addPosToList(playerPos, lastPosList);
   drawGameArea();
+}
+
+function addPosToList(pos, list) {
+  list.push(copyPos(pos));
+}
+
+function copyPos(pos) {
+  return JSON.parse(JSON.stringify(pos));
 }
 
 // Processing method - Her frame de
 function draw() {
-  console.log("-----------------------------------")
-  console.log(candidatePaths);
-  console.log(candidateDirections);
-  console.log(usedPaths);
-  console.log(usedDirections);
-  updateNextPos();
-  if (checkPlayerMove()){
+  console.log(candidatePosList.length);
+  updateCandidatePosList();
+  if (candidatePosList.length > 0) {
+    pos = candidatePosList.pop();
+    addPosToList(copyPos(pos), usedPosList);
+    playerPos = copyPos(pos);
     playerMove();
-    updateCandidatePaths();
-  }
-  else {
-      last_path = [];
-      last_directions = [];
-      updateCandidatePaths();
-      if (candidatePaths.length > 0)
-      {
-        var candidatePathIndex = candidatePaths.length - 1;
-        pos = candidatePaths[candidatePathIndex];
-        dir = candidateDirections[candidatePathIndex];
-        candidatePaths.splice(candidatePathIndex, 1);
-        candidateDirections.splice(candidateDirections, 1);
-        player_pos = pos.slice();
-        player_direction = dir;
-      }
   }
   drawGameArea();
 }
 
 
-function keyReleased(){
-  if (keyCode  === RIGHT_ARROW){
+function keyReleased() {
+  if (keyCode === RIGHT_ARROW) {
     loop()
   }
-  if (keyCode  === LEFT_ARROW)
-  {
+  if (keyCode === LEFT_ARROW) {
     noLoop();
   }
 }
 
-function updateCandidatePaths(){
-  updateNextPos();
-  if (checkPlayerMove())
-  {
-    if (!candidateExists(player_pos, player_direction)){
-      candidatePaths.push(player_pos);
-      candidateDirections.push(player_direction);
+function updateCandidatePosList() {
+  var nextPos = findNextPos(playerPos);
+  if (checkPos(nextPos)) {
+    if (!candidateExists(nextPos)) {
+      addPosToList(nextPos, candidatePosList);
     }
   }
 
-
-  turnRight();
-  updateNextPos();
-  if (checkPlayerMove())
-  {
-    if (!candidateExists(player_pos, player_direction)){
-      candidatePaths.push(player_pos);
-      candidateDirections.push(player_direction);
+  var rightPos = turnRight();
+  nextPos = findNextPos(rightPos);
+  if (checkPos(nextPos)) {
+    if (!candidateExists(nextPos)) {
+      addPosToList(nextPos, candidatePosList);
     }
   }
 
-  turnRight();
-  turnRight();
-  updateNextPos();
-  if (checkPlayerMove())
-  {
-    if (!candidateExists(player_pos, player_direction)){
-      candidatePaths.push(player_pos);
-      candidateDirections.push(player_direction);
+  var leftPos = turnLeft();
+  nextPos = findNextPos(leftPos);
+  if (checkPos(nextPos)) {
+    if (!candidateExists(nextPos)) {
+      addPosToList(nextPos, candidatePosList);
     }
   }
-  turnRight();
+
 }
 
-function candidateExists(pos, dir){
-  for (let i = 0 ; i < candidatePaths.length ; i++){
-    if (candidatePaths[i][0] == pos[0] && candidatePaths[i][1] == pos[1] && candidateDirections[i] == dir)
+function isEqualPos(pos1, pos2) {
+  return pos1.row == pos2.row && pos1.column == pos2.column && pos1.direction == pos2.direction;
+}
+
+function candidateExists(pos, dir) {
+  for (let i = 0; i < candidatePosList.length; i++) {
+    if (isEqualPos(candidatePosList[i], pos))
       return true;
   }
-  for (let i = 0 ; i < usedPaths.length ; i++){
-    if (usedPaths[i][0] == pos[0] && usedPaths[i][1] == pos[1] && usedDirections[i] == dir)
+  for (let i = 0; i < usedPosList.length; i++) {
+    if (isEqualPos(usedPosList[i], pos))
       return true;
   }
   return false;
 }
 
-function isPosUsed(pos){
-  for (var i = 0; i < last_path.length ; i++){
-		if (last_path[i][0] == pos[0] && last_path[i][1] == pos[1])
+function isPosUsed(pos) {
+  for (var i = 0; i < last_path.length; i++) {
+    if (last_path[i][0] == pos[0] && last_path[i][1] == pos[1])
       return true;
   }
   return false;
 }
 
-
-
-function updateNextPos() {
-  next_pos = findNextPosition();
-}
 
 // hareket edip edemeyecegini kontrol ediyor
-function checkPlayerMove() {
-  if (candidateExists(next_pos, player_direction))
+function checkPos(pos) {
+  if (candidateExists(pos))
     return false;
 
-  if (next_pos[0] < 0 || next_pos[0] >= num_squares || next_pos[1] < 0 || next_pos[1] >= num_squares)
+  if (pos.row < 0 || pos.row >= num_squares || pos.column < 0 || pos.column >= num_squares)
     return false;
-  if (squares[next_pos[0]][next_pos[1]] == 1)
+  if (squares[pos.row][pos.column] == 1)
     return false;
   return true;
 }
 
 
-function findNextPosition() {
-  var next = player_pos.slice();
-  switch (player_direction) {
+function findNextPos(pos) {
+  var nextPos = copyPos(pos);
+  switch (pos.direction) {
     case DIRECTION_UP:
-      next[0] = next[0] - 1;
+      nextPos.row--;
       break;
     case DIRECTION_LEFT:
-      next[1] = next[1] - 1;
+      nextPos.column--;
       break;
     case DIRECTION_DOWN:
-      next[0] = next[0] + 1;
+      nextPos.row++;;
       break;
     case DIRECTION_RIGHT:
-      next[1] = next[1] + 1;
+      nextPos.column++;
       break;
   }
-  return next;
+  return nextPos;
 }
 
 
@@ -218,19 +176,17 @@ function findNextPosition() {
 function drawMaze() {
   for (var i = 0; i < num_squares; i++) {
     for (var j = 0; j < num_squares; j++) {
-      if (squares[i][j] == 0){
-        b = usedMatrix[i][j]*10;
+      if (squares[i][j] == 0) {
+        b = usedMatrix[i][j] * 10;
         if (b > 100)
           b = 100;
         fill(0, b, 60);
-      }
-      else if (squares[i][j] == 1)
+      } else if (squares[i][j] == 1)
         fill(0, 0, 20);
       else if (squares[i][j] > 10 && squares[i][j] <= 20) {
         var goldDegree = squares[i][j] - 10;
         fill(84, goldDegree * 10, 60);
-      }
-      else if (squares[i][j] == 3)
+      } else if (squares[i][j] == 3)
         fill(240, 93, 39);
       rect(j * square_size + margin_size, i * square_size + margin_size, square_size, square_size);
     }
@@ -240,25 +196,23 @@ function drawMaze() {
 function drawGameArea() {
   background(0, 97, 18);
   drawMaze();
-  drawLastPath();
-  drawLastPath();
+  //drawLastPosList();
   drawPlayer();
 }
 
 // Gectigin yerlerin isaretlenmesi icin yapilan fonksiyonu
-function drawLastPath(){
-
-  for (var i = 0; i < last_path.length ; i++){
-    fill(Math.random()*100, 50, 100);
-		drawPos(last_path[i], last_directions[i]);
+function drawLastPosList() {
+  for (var i = 0; i < lastPosList.length; i++) {
+    fill(Math.random() * 100, 50, 100);
+    drawPos(lastPosList[i]);
   }
 }
 
-function drawPos(pos, direction){
-  var x = pos[1] * square_size + margin_size + 10;
-  var y = pos[0] * square_size + margin_size + 10;
+function drawPos(pos) {
+  var x = pos.column * square_size + margin_size + 10;
+  var y = pos.row * square_size + margin_size + 10;
 
-  switch (direction) {
+  switch (pos.direction) {
     case DIRECTION_UP:
       triangle(x, y + player_size, x + player_size, y + player_size, x + player_size / 2, y);
       break;
@@ -275,39 +229,36 @@ function drawPos(pos, direction){
 }
 
 function drawPlayer() {
-   fill(0, 100, 100);
-	drawPos(player_pos, player_direction);
+  fill(0, 100, 100);
+  drawPos(playerPos);
 }
 
 //sağa hareket ettiğimiz fonksiyon player pos'un ilk indexi
 function playerMove() {
-  player_pos = next_pos.slice();
-  last_path.push(player_pos);
-  last_directions.push(player_direction);
-  usedMatrix[player_pos[0]][player_pos[1]]++;
-  usedPaths.push(player_pos.slice());
-  usedDirections.push(player_direction);
+  lastPosList.push(playerPos);
+  usedMatrix[playerPos.row][playerPos.column]++;
 }
 
 // Yönünü sağa doğru değiştir
 function turnRight() {
-  player_direction = (player_direction + 3) % 4;
-  updateNextPos();
+  pos = copyPos(playerPos);
+  pos.direction = (pos.direction + 3) % 4;
+  return pos;
 }
 
 // Yönünü sola doğru değiştir
 function turnLeft() {
-  player_direction = (player_direction + 1) % 4;
-  updateNextPos();
+  pos = copyPos(playerPos);
+  pos.direction = (pos.direction + 1) % 4;
+  return pos;
 }
 
 
-function findPlayerPos() {
+function findFirstPos() {
   for (var i = 0; i < num_squares; i++) {
     for (var j = 0; j < num_squares; j++) {
       if (squares[i][j] == 3)
-        return [i, j];
+        playerPos = new Position(i, j, DIRECTION_UP);
     }
   }
-  return null;
 }
