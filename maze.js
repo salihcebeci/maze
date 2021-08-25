@@ -45,7 +45,7 @@ var usedMatrix = []
 
 // Processing method - Baslangicta bir kez
 function setup() {
-  frameRate(1);
+  frameRate(10);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
