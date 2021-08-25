@@ -11,10 +11,13 @@ num_squares = 19;
 var stepCounter = 0;
 
 var playerPos;
-var lastPosList = [];
+var pastPosList = [];
 var canUseUsedPos = false;
 var candidatePosList = [];
 var usedPosList = [];
+
+var reverseMode = false;
+var reverseIndex = 0;
 
 squares = [
   [0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //0. sıra
@@ -42,7 +45,7 @@ var usedMatrix = []
 
 // Processing method - Baslangicta bir kez
 function setup() {
-  frameRate(60);
+  frameRate(1);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
@@ -53,7 +56,7 @@ function setup() {
     }
   }
   findFirstPos();
-  addPosToList(playerPos, lastPosList);
+  addPosToList(playerPos, pastPosList);
   drawGameArea();
 }
 
@@ -67,13 +70,54 @@ function copyPos(pos) {
 
 // Processing method - Her frame de
 function draw() {
-  console.log(candidatePosList.length);
-  updateCandidatePosList();
-  if (candidatePosList.length > 0) {
-    pos = candidatePosList.pop();
-    addPosToList(copyPos(pos), usedPosList);
-    playerPos = copyPos(pos);
-    playerMove();
+
+  console.log(pastPosList);
+
+  var fromReverseMode = false;
+
+  if (candidatePosList.length == 0)
+    reverseMode = false;
+
+  if (reverseMode){
+    fromReverseMode = true;
+    pos = pastPosList.pop();
+    pos.direction = (pos.direction + 2) % 4;
+
+    // TODO direction i bir onceki pos ile birlikte dusun.
+    // Mutlak degerin farkina bakmak degilde , direction ile birlikte dusun.
+    // Direction in tipine gore -1 ya da +1 dyierek bak
+
+    if (abs(pos.row - candidatePosList[candidatePosList.length - 1].row) <= 1 && 
+        abs(pos.column - candidatePosList[candidatePosList.length - 1].column) <= 1){;
+          reverseMode = false;
+    }  
+    else
+    {
+      nextPos = findNextPos(pos);
+      playerMove(nextPos, false);
+    }
+  }
+
+  if (!fromReverseMode)
+  {
+    newAdded = updateCandidatePosList();
+    if (!newAdded){
+      reverseMode = true;
+    }
+    else{
+      if (candidatePosList.length > 0) {
+        pos = candidatePosList.pop();
+        addPosToList(copyPos(pos), usedPosList);
+        playerMove(pos, true);
+      }
+    }
+  }
+  if (!reverseMode && fromReverseMode){
+    if (candidatePosList.length > 0) {
+      pos = candidatePosList.pop();
+      addPosToList(copyPos(pos), usedPosList);
+      playerMove(pos, true);
+    }
   }
   drawGameArea();
 }
@@ -89,10 +133,12 @@ function keyReleased() {
 }
 
 function updateCandidatePosList() {
+  var newAdded = false;
   var nextPos = findNextPos(playerPos);
   if (checkPos(nextPos)) {
     if (!candidateExists(nextPos)) {
       addPosToList(nextPos, candidatePosList);
+      newAdded = true;
     }
   }
 
@@ -101,6 +147,7 @@ function updateCandidatePosList() {
   if (checkPos(nextPos)) {
     if (!candidateExists(nextPos)) {
       addPosToList(nextPos, candidatePosList);
+      newAdded = true;
     }
   }
 
@@ -109,8 +156,10 @@ function updateCandidatePosList() {
   if (checkPos(nextPos)) {
     if (!candidateExists(nextPos)) {
       addPosToList(nextPos, candidatePosList);
+      newAdded = true;
     }
   }
+  return newAdded;
 
 }
 
@@ -196,15 +245,15 @@ function drawMaze() {
 function drawGameArea() {
   background(0, 97, 18);
   drawMaze();
-  //drawLastPosList();
+  //drawPastPosList();
   drawPlayer();
 }
 
 // Gectigin yerlerin isaretlenmesi icin yapilan fonksiyonu
-function drawLastPosList() {
-  for (var i = 0; i < lastPosList.length; i++) {
+function drawPastPosList() {
+  for (var i = 0; i < pastPosList.length; i++) {
     fill(Math.random() * 100, 50, 100);
-    drawPos(lastPosList[i]);
+    drawPos(pastPosList[i]);
   }
 }
 
@@ -234,8 +283,10 @@ function drawPlayer() {
 }
 
 //sağa hareket ettiğimiz fonksiyon player pos'un ilk indexi
-function playerMove() {
-  lastPosList.push(playerPos);
+function playerMove(pos, addToPastPosList) {
+  playerPos = copyPos(pos);
+  if (addToPastPosList)
+    pastPosList.push(playerPos);
   usedMatrix[playerPos.row][playerPos.column]++;
 }
 
