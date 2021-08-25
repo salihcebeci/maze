@@ -49,12 +49,22 @@ squares = [
   [0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0], //17.sıra
   [0, 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 20]] //18.sıra
 
+
+var usedMatrix = []
+
 // Processing method - Baslangicta bir kez
 function setup() {
   frameRate(10);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
+  for (let i = 0; i < num_squares ; i++){
+    usedMatrix.push([]);
+    for (let j = 0; j < num_squares ; j++){
+      usedMatrix[i].push(0);
+    }
+  }
+  console.log(usedMatrix);
   player_pos = findPlayerPos();
   last_path.push(player_pos);
   last_directions.push(player_direction);
@@ -76,6 +86,8 @@ function draw() {
     updateCandidatePaths();
   }
   else {
+      last_path = [];
+      last_directions = [];
       updateCandidatePaths();
       var candidatePathIndex = candidatePaths.length - 1;
       pos = candidatePaths[candidatePathIndex];
@@ -175,8 +187,12 @@ function findNextPosition() {
 function drawMaze() {
   for (var i = 0; i < num_squares; i++) {
     for (var j = 0; j < num_squares; j++) {
-      if (squares[i][j] == 0)
-        fill(0, 0, 71);
+      if (squares[i][j] == 0){
+        b = usedMatrix[i][j]*10;
+        if (b > 100)
+          b = 100;
+        fill(0, b, 60);
+      }
       else if (squares[i][j] == 1)
         fill(0, 0, 20);
       else if (squares[i][j] > 10 && squares[i][j] <= 20) {
@@ -237,6 +253,7 @@ function playerMove() {
   player_pos = next_pos.slice();
   last_path.push(player_pos);
   last_directions.push(player_direction);
+  usedMatrix[player_pos[0]][player_pos[1]]++;
 }
 
 // Yönünü sağa doğru değiştir
