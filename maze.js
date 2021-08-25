@@ -22,6 +22,12 @@ var last_directions = [];
 
 var canUseUsedPos = false;
 
+var candidatePaths = [];
+var candidateDirections = [];
+
+var usedPaths = [];
+var usedDirections = [];
+
 squares = [
   [0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], //0. sıra
   [0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1], //1. sıra
@@ -52,28 +58,73 @@ function setup() {
   player_pos = findPlayerPos();
   last_path.push(player_pos);
   last_directions.push(player_direction);
+  updateCandidatePaths();
+  var candidatePathIndex = candidatePaths.length - 1;
+  pos = candidatePaths[candidatePathIndex];
+  dir = candidateDirections[candidatePathIndex];
+  player_pos = pos.slice();
+  player_direction = dir;
   drawGameArea();
 }
 
 // Processing method - Her frame de
 function draw() {
+  console.log(candidatePaths.length);
   updateNextPos();
-  if (!canUseUsedPos && isPosUsed(next_pos)){
-    turnLeft();
-    canUseUsedPos = true;
-    last_path = [];
-    last_directions = [];
-  }
-  else if (checkPlayerMove()){
-  	playerMove();
-    canUseUsedPos = false;
-    last_path.push(player_pos);
-    last_directions.push(player_direction);
+  if (checkPlayerMove()){
+    playerMove();
+    updateCandidatePaths();
   }
   else {
-    turnLeft();
+      updateCandidatePaths();
+      var candidatePathIndex = candidatePaths.length - 1;
+      pos = candidatePaths[candidatePathIndex];
+      dir = candidateDirections[candidatePathIndex];
+      usedPaths.push(pos);
+      usedDirections.push(dir);
+      candidatePaths.splice(candidatePathIndex, 1);
+      candidateDirections.splice(candidateDirections, 1);
+      player_pos = pos.slice();
+      player_direction = dir;
   }
   drawGameArea();
+}
+
+function updateCandidatePaths(){
+
+  turnRight();
+  updateNextPos();
+  if (checkPlayerMove())
+  {
+    if (!candidateExists(player_pos, player_direction)){
+      candidatePaths.push(player_pos);
+      candidateDirections.push(player_direction);
+    }
+  }
+
+  turnRight();
+  turnRight();
+  updateNextPos();
+  if (checkPlayerMove())
+  {
+    if (!candidateExists(player_pos, player_direction)){
+      candidatePaths.push(player_pos);
+      candidateDirections.push(player_direction);
+    }
+  }
+  turnRight();
+}
+
+function candidateExists(pos, dir){
+  for (let i = 0 ; i < candidatePaths.length ; i++){
+    if (candidatePaths[i][0] == pos[0] && candidatePaths[i][1] == pos[1] && candidateDirections[i] == dir)
+      return true;
+  }
+  for (let i = 0 ; i < usedPaths.length ; i++){
+    if (usedPaths[i][0] == pos[0] && usedPaths[i][1] == pos[1] && usedDirections[i] == dir)
+      return true;
+  }
+  return false;
 }
 
 function isPosUsed(pos){
