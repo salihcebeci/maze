@@ -3,6 +3,10 @@ DIRECTION_LEFT = 1;
 DIRECTION_DOWN = 2;
 DIRECTION_RIGHT = 3;
 
+RANDOMIZE_SQUARES = true;
+SHOW_GOLDS = false;
+
+
 square_size = 40;
 player_size = 20;
 margin_size = 20;
@@ -55,10 +59,27 @@ function setup() {
       usedMatrix[i].push(0);
     }
   }
+
+  if (RANDOMIZE_SQUARES)
+    randomizeSquares();
+
   findFirstPos();
   addPosToList(playerPos, pastPosList);
   drawGameArea();
 }
+
+function randomizeSquares(){
+  for (let i = 0; i < num_squares; i++) {
+    for (let j = 0; j < num_squares; j++) {
+      val = 0;
+      if (Math.random() < 0.5)
+        val = 1;
+      squares[i][j] = val;
+    }
+  }
+  squares[round(num_squares/2)][round(num_squares/2)] = 3;
+}
+
 
 function addPosToList(pos, list) {
   list.push(copyPos(pos));
@@ -209,16 +230,16 @@ function findNextPos(pos) {
 function drawMaze() {
   for (var i = 0; i < num_squares; i++) {
     for (var j = 0; j < num_squares; j++) {
-      if (squares[i][j] == 0) {
-        b = usedMatrix[i][j] * 3 + 10;
+      if (squares[i][j] == 0 || squares[i][j] > 10 && squares[i][j] <= 20 && !SHOW_GOLDS) {
+        b = usedMatrix[i][j] * 6 + 5;
         if (b > 100)
           b = 100;
         fill(0, b, 60);
       } else if (squares[i][j] == 1)
         fill(0, 0, 20);
-      else if (squares[i][j] > 10 && squares[i][j] <= 20) {
-        var goldDegree = squares[i][j] - 10;
-        fill(84, goldDegree * 10, 60);
+      else if (squares[i][j] > 10 && squares[i][j] <= 20 && SHOW_GOLDS) {
+          var goldDegree = squares[i][j] - 10;
+          fill(84, goldDegree * 10, 60);
       } else if (squares[i][j] == 3)
         fill(240, 93, 39);
       rect(j * square_size + margin_size, i * square_size + margin_size, square_size, square_size);
