@@ -45,7 +45,7 @@ var usedMatrix = []
 
 // Processing method - Baslangicta bir kez
 function setup() {
-  frameRate(10);
+  frameRate(20);
   createCanvas(800, 800);
   colorMode(HSB, 360, 100, 100);
   noStroke();
@@ -70,48 +70,37 @@ function copyPos(pos) {
 
 // Processing method - Her frame de
 function draw() {
-  var fromReverseMode = false;
-
   if (candidatePosList.length == 0)
     reverseMode = false;
 
-  if (reverseMode){
-    fromReverseMode = true;
+  if (reverseMode) {
     pos = pastPosList.pop();
-    pos.direction = (pos.direction + 2) % 4;
-
     candidatePos = copyPos(candidatePosList[candidatePosList.length - 1]);
     candidatePos.direction = (candidatePos.direction + 2) % 4;
     candidatePosNext = findNextPos(candidatePos);
-    if (candidatePosNext.row == pos.row && candidatePosNext.column == pos.column){
-          reverseMode = false;
-    }  
-    else
-    {
+    if (candidatePosNext.row != pos.row || candidatePosNext.column != pos.column) {
+      pos.direction = (pos.direction + 2) % 4;
       nextPos = findNextPos(pos);
       playerMove(nextPos, false);
+    } else {
+      reverseMode = false;
+      pastPosList.push(pos);
+      if (candidatePosList.length > 0) {
+        var pos = candidatePosList.pop();
+        addPosToList(pos, usedPosList);
+        playerMove(pos, true);
+      }
     }
-  }
-
-  if (!fromReverseMode)
-  {
+  } else {
     newAdded = updateCandidatePosList();
-    if (!newAdded){
+    if (!newAdded) {
       reverseMode = true;
-    }
-    else{
+    } else {
       if (candidatePosList.length > 0) {
         pos = candidatePosList.pop();
         addPosToList(copyPos(pos), usedPosList);
         playerMove(pos, true);
       }
-    }
-  }
-  if (!reverseMode && fromReverseMode){
-    if (candidatePosList.length > 0) {
-      pos = candidatePosList.pop();
-      addPosToList(copyPos(pos), usedPosList);
-      playerMove(pos, true);
     }
   }
   drawGameArea();
@@ -198,7 +187,7 @@ function checkPos(pos) {
 
 function findNextPos(pos) {
   var nextPos = copyPos(pos);
-  switch (pos.direction) {
+  switch (nextPos.direction) {
     case DIRECTION_UP:
       nextPos.row--;
       break;
@@ -283,6 +272,7 @@ function playerMove(pos, addToPastPosList) {
   if (addToPastPosList)
     pastPosList.push(playerPos);
   usedMatrix[playerPos.row][playerPos.column]++;
+  stepCounter++;
 }
 
 // Yönünü sağa doğru değiştir
