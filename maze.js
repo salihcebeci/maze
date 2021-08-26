@@ -231,10 +231,15 @@ function drawMaze() {
   for (var i = 0; i < num_squares; i++) {
     for (var j = 0; j < num_squares; j++) {
       if (squares[i][j] == 0 || squares[i][j] > 10 && squares[i][j] <= 20 && !SHOW_GOLDS) {
-        b = usedMatrix[i][j] * 6 + 5;
+        if (usedMatrix[i][j] > 0){
+        b = usedMatrix[i][j] * 5 + 20;
         if (b > 100)
           b = 100;
         fill(0, b, 60);
+        }
+        else {
+          fill(0, 0, 60);
+        }
       } else if (squares[i][j] == 1)
         fill(0, 0, 20);
       else if (squares[i][j] > 10 && squares[i][j] <= 20 && SHOW_GOLDS) {
