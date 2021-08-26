@@ -210,7 +210,7 @@ function drawMaze() {
   for (var i = 0; i < num_squares; i++) {
     for (var j = 0; j < num_squares; j++) {
       if (squares[i][j] == 0) {
-        b = usedMatrix[i][j] * 10;
+        b = usedMatrix[i][j] * 3 + 10;
         if (b > 100)
           b = 100;
         fill(0, b, 60);
