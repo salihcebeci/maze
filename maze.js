@@ -139,6 +139,10 @@ function keyReleased() {
 
 function updateCandidatePosList() {
   var newAdded = false;
+
+
+
+
   var nextPos = findNextPos(playerPos);
   if (checkPos(nextPos)) {
     if (!candidateExists(nextPos)) {
@@ -164,6 +168,9 @@ function updateCandidatePosList() {
       newAdded = true;
     }
   }
+
+
+
   return newAdded;
 
 }
